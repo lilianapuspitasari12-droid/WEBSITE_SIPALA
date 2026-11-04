@@ -205,8 +205,8 @@
     {{-- STATISTIK --}}
     <section>
         <div class="mb-4">
-            <h2 class="text-lg font-bold text-slate-900">Statistik Inventaris</h2>
-            <p class="mt-1 text-sm font-medium text-slate-600">
+            <h2 class="text-lg font-bold text-white">Statistik Inventaris</h2>
+            <p class="mt-1 text-sm font-medium text-blue-100">
                 Ringkasan kondisi inventaris dan peminjaman.
             </p>
         </div>
