@@ -2,18 +2,47 @@
 @section('judul', 'Dashboard Petugas')
 
 @section('konten')
+
+@php
+    $notifikasiDenda = \App\Models\Peminjaman::with(['user', 'items.alat'])
+        ->where(function ($query) {
+            $query->where(function ($q) {
+                $q->where('status', 'dipinjam')
+                    ->whereDate('tanggal_jatuh_tempo', '<', today());
+            })->orWhere(function ($q) {
+                $q->where('status', 'dikembalikan')
+                    ->where('total_denda', '>', 0)
+                    ->where(function ($d) {
+                        $d->whereNull('status_denda')
+                          ->orWhere('status_denda', '!=', 'lunas');
+                    });
+            });
+        })
+        ->latest()
+        ->get();
+
+    $jumlahNotifikasi = $notifikasiDenda->count();
+
+    $totalDendaNotifikasi = $notifikasiDenda->sum(function ($p) {
+        return $p->status === 'dikembalikan'
+            ? (int) $p->total_denda
+            : (int) $p->hitungDenda();
+    });
+@endphp
+
 <div class="space-y-8">
 
     {{-- HEADER --}}
-    <header class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-800 via-blue-700 to-teal-700 p-6 text-white shadow-lg sm:p-8">
-        <div class="relative z-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+    <header class="relative overflow-visible rounded-3xl bg-gradient-to-r from-blue-800 via-blue-700 to-teal-700 p-6 text-white shadow-lg sm:p-8">
+        <div class="relative z-20 flex flex-col gap-4 pr-0 sm:pr-16">
+
             <div>
                 <span class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-bold text-white">
                     <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
                     SIPALA · Panel Petugas
                 </span>
 
-                <h1 class="mt-4 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+                <h1 class="mt-4 max-w-[230px] text-2xl font-extrabold tracking-tight text-white sm:max-w-none sm:text-3xl">
                     Ringkasan Hari Ini
                 </h1>
 
@@ -22,26 +51,164 @@
                 </p>
 
                 <p class="mt-4 text-sm font-semibold text-white">
-                {{ now()->locale('id')->translatedFormat('l, j F Y') }}
+                    {{ now()->locale('id')->translatedFormat('l, j F Y') }}
                 </p>
             </div>
 
-            <div class="hidden h-24 w-24 shrink-0 items-center justify-center rounded-3xl border border-white/30 bg-white/15 text-white sm:flex">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-7 8h6m-6 4h6m-9-4h.01M9 17h.01"/>
-                </svg>
+            {{-- IKON NOTIFIKASI --}}
+            <div class="absolute right-0 top-4 z-30 flex shrink-0 items-center sm:right-6 sm:top-8"
+                    x-data="{ notifikasiBuka: false }">
+
+                <button type="button"
+        @click="notifikasiBuka = !notifikasiBuka"
+        class="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-white shadow-md transition hover:bg-white/25"
+        aria-label="Notifikasi">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-5 w-5 text-white"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor"
+         stroke-width="1.8">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+    </svg>
+
+    @if ($jumlahNotifikasi > 0)
+        <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-blue-800 bg-red-500 px-1 text-[10px] font-extrabold text-white">
+            {{ $jumlahNotifikasi > 99 ? '99+' : $jumlahNotifikasi }}
+        </span>
+    @endif
+</button>
+
+                {{-- DROPDOWN NOTIFIKASI --}}
+                <div x-cloak
+                     x-show="notifikasiBuka"
+                     x-transition
+                     @click.outside="notifikasiBuka = false"
+                     class="absolute right-0 top-full z-[100] mt-3 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:w-96">
+
+                    <div class="border-b border-slate-100 p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-extrabold text-slate-900">
+                                    Notifikasi
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Informasi keterlambatan pengembalian
+                                </p>
+                            </div>
+
+                            <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+                                {{ $jumlahNotifikasi }} Notifikasi
+                            </span>
+                        </div>
+
+                        <div class="mt-3 rounded-xl bg-red-50 p-3">
+                            <p class="text-xs font-semibold text-red-700">
+                                Total denda
+                            </p>
+                            <p class="mt-1 text-xl font-extrabold text-red-800">
+                                Rp{{ number_format($totalDendaNotifikasi, 0, ',', '.') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="max-h-72 overflow-y-auto p-3">
+                        @forelse ($notifikasiDenda as $p)
+                            <div class="mb-2 rounded-xl border border-slate-100 p-3 last:mb-0">
+                                <div class="flex items-start gap-3">
+
+                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+                                             class="h-5 w-5"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor"
+                                             stroke-width="1.8">
+                                            <path stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  d="M12 9v3m0 4h.01M10.3 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.7 3.86a2 2 0 00-3.4 0z"/>
+                                        </svg>
+                                    </div>
+
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-bold text-slate-900">
+                                            {{ $p->user->name ?? 'Pengguna' }}
+                                        </p>
+
+                                        <p class="mt-1 text-xs text-slate-500">
+                                            @foreach ($p->items as $item)
+                                                {{ $item->alat->nama ?? 'Alat' }}{{ !$loop->last ? ', ' : '' }}
+                                            @endforeach
+                                        </p>
+
+                                        @if ($p->status === 'dipinjam')
+                                            <p class="mt-2 text-xs font-semibold text-red-600">
+                                                Terlambat {{ $p->hariTerlambatUntukDenda() }} hari
+                                            </p>
+
+                                            <p class="mt-1 text-sm font-extrabold text-slate-800">
+                                                Rp{{ number_format($p->hitungDenda(), 0, ',', '.') }}
+                                            </p>
+                                        @else
+                                            <p class="mt-2 text-xs font-semibold text-amber-600">
+                                                Menunggu pelunasan denda
+                                            </p>
+
+                                            <p class="mt-1 text-sm font-extrabold text-slate-800">
+                                                Rp{{ number_format($p->total_denda, 0, ',', '.') }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center">
+                                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         class="h-6 w-6"
+                                         fill="none"
+                                         viewBox="0 0 24 24"
+                                         stroke="currentColor"
+                                         stroke-width="2">
+                                        <path stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+
+                                <p class="mt-3 text-sm font-bold text-slate-800">
+                                    Tidak ada notifikasi
+                                </p>
+
+                                <p class="mt-1 text-xs text-slate-500">
+                                    Semua pengembalian dalam kondisi aman.
+                                </p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="border-t border-slate-100 p-3">
+                        <a href="{{ route('denda.index') }}"
+                           class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-blue-800">
+                            Kelola Denda
+                            <span>&rarr;</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/10"></div>
-        <div class="absolute -bottom-16 right-32 h-36 w-36 rounded-full bg-white/10"></div>
     </header>
 
     {{-- STATISTIK --}}
     <section>
         <div class="mb-4">
             <h2 class="text-lg font-bold text-slate-900">Statistik Inventaris</h2>
-            <p class="mt-1 text-sm font-medium text-slate-600">Ringkasan kondisi inventaris dan peminjaman.</p>
+            <p class="mt-1 text-sm font-medium text-slate-600">
+                Ringkasan kondisi inventaris dan peminjaman.
+            </p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -119,7 +286,9 @@
         <div class="flex flex-col gap-3 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
             <div>
                 <h2 class="text-lg font-bold text-slate-900">Antrean Persetujuan</h2>
-                <p class="mt-1 text-sm font-medium text-slate-600">Pengajuan peminjaman yang perlu diproses.</p>
+                <p class="mt-1 text-sm font-medium text-slate-600">
+                    Pengajuan peminjaman yang perlu diproses.
+                </p>
             </div>
 
             <a href="{{ route('persetujuan.index') }}"
@@ -136,7 +305,9 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="angka text-sm font-bold text-blue-800">{{ $p->kode }}</span>
-                                <span class="text-xs font-medium text-slate-600">· {{ $p->created_at->diffForHumans() }}</span>
+                                <span class="text-xs font-medium text-slate-600">
+                                    · {{ $p->created_at->diffForHumans() }}
+                                </span>
                             </div>
 
                             <p class="mt-2 font-bold text-slate-900">
@@ -183,7 +354,9 @@
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="border-b border-slate-200 p-5 sm:p-6">
             <h2 class="text-lg font-bold text-slate-900">Stok Alat Menipis</h2>
-            <p class="mt-1 text-sm font-medium text-slate-600">Pantau alat yang jumlah tersedianya sedikit.</p>
+            <p class="mt-1 text-sm font-medium text-slate-600">
+                Pantau alat yang jumlah tersedianya sedikit.
+            </p>
         </div>
 
         @if (count($stokMenipis))
@@ -223,7 +396,9 @@
         @else
             <div class="p-8 text-center">
                 <p class="font-bold text-slate-900">Stok aman</p>
-                <p class="mt-1 text-sm font-medium text-slate-600">Tidak ada alat yang masuk daftar stok menipis.</p>
+                <p class="mt-1 text-sm font-medium text-slate-600">
+                    Tidak ada alat yang masuk daftar stok menipis.
+                </p>
             </div>
         @endif
     </section>

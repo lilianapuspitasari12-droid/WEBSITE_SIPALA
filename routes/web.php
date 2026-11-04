@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\PersetujuanController;
 use App\Http\Controllers\Admin\LaporanPeminjamanController;
+use App\Http\Controllers\Admin\DendaController;
 use App\Http\Controllers\AlatController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PeminjamanController;
@@ -116,6 +117,13 @@ Route::middleware(['auth'])->group(function () {
             '/pengembalian/{pengembalian}/tolak',
             [PengembalianController::class, 'tolak']
         )->name('pengembalian.tolak');
+
+        // Kelola denda
+        Route::get('/denda', [DendaController::class, 'index'])
+            ->name('denda.index');
+
+        Route::patch('/denda/{peminjaman}/lunas', [DendaController::class, 'lunas'])
+            ->name('denda.lunas');
 
         // Laporan peminjaman
         Route::get('/laporan-peminjaman', [

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Peminjaman;
 use App\Models\Pengembalian;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -16,8 +17,11 @@ class PengembalianController extends Controller
     {
         $user = $request->user();
 
-        $query = Peminjaman::with('user', 'items.alat', 'pengembalian')
-            ->where('status', 'dipinjam');
+        $query = Peminjaman::with(
+            'user',
+            'items.alat',
+            'pengembalian'
+        )->where('status', 'dipinjam');
 
         if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
@@ -31,7 +35,7 @@ class PengembalianController extends Controller
     }
 
     /**
-     * Halaman detail pengembalian sekaligus form pengajuan.
+     * Detail pengembalian dan form pengajuan.
      */
     public function show(
         Request $request,
@@ -39,7 +43,6 @@ class PengembalianController extends Controller
     ): View {
         $user = $request->user();
 
-        // Siswa hanya boleh melihat peminjamannya sendiri.
         abort_unless(
             $user->isAdmin() ||
             (int) $peminjaman->user_id === (int) $user->id,
@@ -47,9 +50,12 @@ class PengembalianController extends Controller
             'Kamu tidak memiliki akses ke peminjaman ini.'
         );
 
-        $peminjaman->load('user', 'items.alat', 'pengembalian');
+        $peminjaman->load(
+            'user',
+            'items.alat',
+            'pengembalian'
+        );
 
-        // Pengembalian hanya tersedia untuk peminjaman aktif.
         abort_unless(
             $peminjaman->status === 'dipinjam',
             404,
@@ -59,11 +65,18 @@ class PengembalianController extends Controller
         return view('pengembalian.show', compact('peminjaman'));
     }
 
+    /**
+     * Riwayat transaksi peminjaman.
+     */
     public function riwayat(Request $request): View
     {
         $user = $request->user();
 
-        $query = Peminjaman::with('user', 'items.alat', 'pengembalian');
+        $query = Peminjaman::with(
+            'user',
+            'items.alat',
+            'pengembalian'
+        );
 
         if (! $user->isAdmin()) {
             $query->where('user_id', $user->id);
@@ -88,7 +101,11 @@ class PengembalianController extends Controller
         $total = (clone $query)->count();
 
         $disetujui = (clone $query)
-            ->whereIn('status', ['disetujui', 'dipinjam', 'dikembalikan'])
+            ->whereIn('status', [
+                'disetujui',
+                'dipinjam',
+                'dikembalikan'
+            ])
             ->count();
 
         $selesai = (clone $query)
@@ -107,16 +124,19 @@ class PengembalianController extends Controller
         ));
     }
 
+    /**
+     * Siswa atau guru mengajukan pengembalian.
+     */
     public function store(
         Request $request,
         Peminjaman $peminjaman
-    ): \Illuminate\Http\RedirectResponse {
+    ): RedirectResponse {
         abort_unless(! $request->user()->isAdmin(), 403);
 
         abort_unless(
             (int) $request->user()->id === (int) $peminjaman->user_id,
             403,
-            'Kamu tidak berhak mengajukan pengembalian peminjaman ini.'
+            'Kamu tidak berhak mengajukan pengembalian ini.'
         );
 
         abort_unless(
@@ -227,7 +247,11 @@ class PengembalianController extends Controller
             throw $e;
         }
 
-        if ($lama && $lama->bukti_path && $lama->bukti_path !== $path) {
+        if (
+            $lama &&
+            $lama->bukti_path &&
+            $lama->bukti_path !== $path
+        ) {
             Storage::disk('public')->delete($lama->bukti_path);
         }
 
@@ -239,10 +263,15 @@ class PengembalianController extends Controller
             );
     }
 
+    /**
+     * Admin mengonfirmasi pengembalian dan menyimpan denda.
+     */
     public function konfirmasi(
         Request $request,
         Pengembalian $pengembalian
-    ): \Illuminate\Http\RedirectResponse {
+    ): RedirectResponse {
+        abort_unless($request->user()->isAdmin(), 403);
+
         $data = $request->validate([
             'catatan_petugas' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -287,8 +316,11 @@ class PengembalianController extends Controller
                     $jumlah = (int) ($detail['jumlah'] ?? $item->jumlah);
 
                     abort_unless(
-                        in_array($kondisi, ['baik', 'rusak', 'hilang'], true)
-                        && $jumlah === (int) $item->jumlah,
+                        in_array(
+                            $kondisi,
+                            ['baik', 'rusak', 'hilang'],
+                            true
+                        ) && $jumlah === (int) $item->jumlah,
                         422,
                         'Rincian kondisi barang tidak valid.'
                     );
@@ -311,7 +343,7 @@ class PengembalianController extends Controller
                     );
                 }
 
-                // Hanya alat berkondisi baik yang kembali ke stok tersedia.
+                // Hanya alat berkondisi baik yang kembali ke stok.
                 if ($baik > 0) {
                     $item->alat->tambahStok($baik);
                 }
@@ -330,28 +362,50 @@ class PengembalianController extends Controller
                 $item->save();
             }
 
+            // Simpan tanggal pengembalian terlebih dahulu.
+            $peminjaman->tanggal_kembali = today();
+            $peminjaman->status = 'dikembalikan';
+
+            // Hitung denda berdasarkan tanggal jatuh tempo
+            // dan tanggal pengembalian sebenarnya.
+            $peminjaman->total_denda = $peminjaman->hitungDenda();
+
+            $peminjaman->status_denda = $peminjaman->total_denda > 0
+                ? 'belum_dibayar'
+                : 'tidak_ada';
+
+            $peminjaman->denda_dibayar_pada = null;
+            $peminjaman->denda_dibayar_oleh = null;
+
+            $peminjaman->catatan_petugas = $data['catatan_petugas'] ?? null;
+            $peminjaman->diproses_oleh = $request->user()->id;
+
+            $peminjaman->save();
+
             $pengembalian->status = 'dikonfirmasi';
             $pengembalian->catatan_petugas = $data['catatan_petugas'] ?? null;
             $pengembalian->diproses_oleh = $request->user()->id;
             $pengembalian->diproses_pada = now();
             $pengembalian->save();
-
-            $peminjaman->status = 'dikembalikan';
-            $peminjaman->tanggal_kembali = now();
-            $peminjaman->catatan_petugas = $data['catatan_petugas'] ?? null;
-            $peminjaman->diproses_oleh = $request->user()->id;
-            $peminjaman->save();
         });
 
         return redirect()
             ->route('pengembalian.index')
-            ->with('sukses', 'Pengembalian berhasil dikonfirmasi.');
+            ->with(
+                'sukses',
+                'Pengembalian berhasil dikonfirmasi dan denda berhasil dihitung.'
+            );
     }
 
+    /**
+     * Admin menolak pengajuan pengembalian.
+     */
     public function tolak(
         Request $request,
         Pengembalian $pengembalian
-    ): \Illuminate\Http\RedirectResponse {
+    ): RedirectResponse {
+        abort_unless($request->user()->isAdmin(), 403);
+
         $data = $request->validate([
             'catatan_petugas' => ['required', 'string', 'max:1000'],
         ], [

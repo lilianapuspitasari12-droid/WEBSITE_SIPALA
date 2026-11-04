@@ -15,6 +15,8 @@ class Peminjaman extends Model
 
     protected $table = 'peminjamans';
 
+    public const TARIF_DENDA = 10000;
+
     protected $fillable = [
         'kode',
         'user_id',
@@ -26,6 +28,10 @@ class Peminjaman extends Model
         'catatan_petugas',
         'diproses_oleh',
         'diproses_pada',
+        'total_denda',
+        'status_denda',
+        'denda_dibayar_pada',
+        'denda_dibayar_oleh',
     ];
 
     protected $casts = [
@@ -33,6 +39,8 @@ class Peminjaman extends Model
         'tanggal_jatuh_tempo' => 'date',
         'tanggal_kembali' => 'date',
         'diproses_pada' => 'datetime',
+        'denda_dibayar_pada' => 'datetime',
+        'total_denda' => 'integer',
     ];
 
     public const STATUS = [
@@ -54,6 +62,12 @@ class Peminjaman extends Model
     public function petugas(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diproses_oleh');
+    }
+
+    // Relasi admin yang mencatat pelunasan denda
+    public function adminDenda(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'denda_dibayar_oleh');
     }
 
     // Relasi daftar alat yang dipinjam
@@ -105,12 +119,45 @@ class Peminjaman extends Model
             && $this->tanggal_jatuh_tempo->lt(today());
     }
 
-    // Menghitung jumlah hari keterlambatan
+    // Menghitung hari keterlambatan untuk tampilan peminjaman aktif
     public function hariTerlambat(): int
     {
         return $this->isTerlambat()
             ? (int) $this->tanggal_jatuh_tempo->diffInDays(today())
             : 0;
+    }
+
+    // Menghitung hari keterlambatan untuk denda
+    // Jika sudah dikembalikan, gunakan tanggal pengembalian sebenarnya
+    public function hariTerlambatUntukDenda(): int
+    {
+        if (!$this->tanggal_jatuh_tempo) {
+            return 0;
+        }
+
+        if ($this->status === 'dikembalikan') {
+            if (!$this->tanggal_kembali) {
+                return 0;
+            }
+
+            $tanggalAkhir = $this->tanggal_kembali;
+        } elseif ($this->status === 'dipinjam') {
+            $tanggalAkhir = today();
+        } else {
+            return 0;
+        }
+
+        if ($tanggalAkhir->lte($this->tanggal_jatuh_tempo)) {
+            return 0;
+        }
+
+        return (int) $this->tanggal_jatuh_tempo->diffInDays($tanggalAkhir);
+    }
+
+    // Menghitung total denda Rp10.000 per hari
+    public function hitungDenda(): int
+    {
+        return $this->hariTerlambatUntukDenda() * self::TARIF_DENDA;
     }
 
     // Memeriksa apakah peminjaman dapat dibatalkan

@@ -149,6 +149,29 @@
 @php
     $user = auth()->user();
     $petugas = $user->isAdmin();
+
+    $notifikasiDenda = collect();
+
+    if ($petugas) {
+        $notifikasiDenda = \App\Models\Peminjaman::where(function ($query) {
+            $query->where(function ($q) {
+                $q->where('status', 'dipinjam')
+                    ->whereDate('tanggal_jatuh_tempo', '<', today());
+            })->orWhere(function ($q) {
+                $q->where('status', 'dikembalikan')
+                    ->where('total_denda', '>', 0)
+                    ->where('status_denda', '!=', 'lunas');
+            });
+        })->get();
+    }
+
+    $jumlahNotifikasiDenda = $notifikasiDenda->count();
+
+    $totalDendaNotifikasi = $notifikasiDenda->sum(function ($peminjaman) {
+        return $peminjaman->status === 'dikembalikan'
+            ? (int) $peminjaman->total_denda
+            : $peminjaman->hitungDenda();
+    });
 @endphp
 
 <div class="min-h-screen">
@@ -455,6 +478,7 @@
 
         <div class="mx-auto w-full max-w-[1500px] min-w-0 px-4 py-6 pt-20 sm:px-6 lg:px-8 lg:py-8">
 
+           
             {{-- NOTIFIKASI BERHASIL --}}
             @if (session('sukses'))
                 <div class="mb-5 rounded-xl border border-emerald-400/20 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 px-4 py-3 text-sm font-medium text-emerald-200 shadow-sm">
