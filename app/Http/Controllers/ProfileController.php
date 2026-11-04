@@ -102,7 +102,7 @@ class ProfileController extends Controller
         $user->save();
 
         return redirect()
-            ->route('profil.edit')
+            ->route('dashboard')
             ->with('sukses', 'Profil berhasil diperbarui.');
     }
 

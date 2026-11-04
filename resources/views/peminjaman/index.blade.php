@@ -72,27 +72,57 @@
 
     </div>
 
-    {{-- FILTER STATUS --}}
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-lg shadow-black/10">
-        <div class="mb-4">
-            <h2 class="font-bold text-slate-900">Filter Peminjaman</h2>
-            <p class="mt-1 text-sm text-slate-600">Pilih status untuk mencari transaksi tertentu.</p>
+
+{{-- FILTER STATUS --}}
+<section class="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-lg shadow-black/10">
+    <div class="mb-4">
+        <h2 class="text-lg font-bold text-slate-900">Filter Peminjaman</h2>
+        <p class="mt-1 text-sm text-slate-600">
+            Pilih status untuk melihat daftar transaksi peminjaman berdasarkan statusnya.
+        </p>
+    </div>
+
+    <form action="{{ route('peminjaman.index') }}" method="GET"
+          class="flex flex-col gap-3 sm:flex-row sm:items-center">
+
+        <div class="relative w-full flex-1">
+            <select
+                name="status"
+                class="w-full appearance-none rounded-xl border border-slate-300 bg-slate-50 px-5 py-4 pr-12 text-sm font-semibold text-slate-700 outline-none transition hover:border-blue-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
+
+                <option value="" @selected(!request('status'))>
+                    Semua Peminjaman
+                </option>
+
+                @foreach (\App\Models\Peminjaman::STATUS as $nilai => $label)
+                    <option value="{{ $nilai }}" @selected(request('status') === $nilai)>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+
+            <div class="pointer-events-none absolute inset-y-0 right-5 flex items-center text-slate-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </div>
         </div>
 
-        <div class="flex flex-wrap gap-2">
+        <button type="submit"
+                class="rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 px-8 py-4 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
+            Terapkan Filter
+        </button>
+
+        @if(request('status'))
             <a href="{{ route('peminjaman.index') }}"
-               class="rounded-xl px-4 py-2 text-sm font-semibold transition {{ !request('status') ? 'bg-blue-600 text-white shadow-md' : 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-blue-50 hover:text-blue-700' }}">
-                Semua
+               class="rounded-xl border border-slate-300 bg-white px-6 py-4 text-center text-sm font-bold text-slate-600 transition hover:bg-slate-100">
+                Reset
             </a>
+        @endif
+    </form>
+</section>
 
-            @foreach (\App\Models\Peminjaman::STATUS as $nilai => $label)
-                <a href="{{ route('peminjaman.index', ['status' => $nilai]) }}"
-                   class="rounded-xl px-4 py-2 text-sm font-semibold transition {{ request('status') === $nilai ? 'bg-blue-600 text-white shadow-md' : 'border border-slate-200 bg-slate-50 text-slate-700 hover:bg-blue-50 hover:text-blue-700' }}">
-                    {{ $label }}
-                </a>
-            @endforeach
-        </div>
-    </section>
 
     {{-- TABEL --}}
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-lg shadow-black/10">

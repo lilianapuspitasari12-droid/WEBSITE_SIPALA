@@ -154,17 +154,16 @@
 <div class="min-h-screen">
 
     {{-- TOMBOL MENU HP --}}
-    <button
-        type="button"
-        @click="menuBuka = !menuBuka"
-        class="fixed left-4 top-4 z-[60] flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-slate-900/95 text-xl text-white shadow-lg backdrop-blur transition hover:bg-blue-700 lg:hidden"
-        aria-label="Buka atau tutup menu"
-        :aria-expanded="menuBuka.toString()"
-    >
-        <span x-show="!menuBuka">☰</span>
-        <span x-show="menuBuka" x-cloak>✕</span>
-    </button>
-
+<button
+    type="button"
+    x-show="!menuBuka"
+    x-cloak
+    @click="menuBuka = true"
+    class="fixed left-4 top-4 z-[60] flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-slate-900/95 text-xl text-white shadow-lg backdrop-blur transition hover:bg-blue-700 lg:hidden"
+    aria-label="Buka menu"
+>
+    ☰
+</button>
     {{-- LATAR BELAKANG MENU HP --}}
     <div
         x-cloak

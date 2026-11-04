@@ -22,7 +22,7 @@
                 </p>
 
                 <p class="mt-4 text-sm font-semibold text-white">
-                    {{ now()->translatedFormat('l, j F Y') }}
+                {{ now()->locale('id')->translatedFormat('l, j F Y') }}
                 </p>
             </div>
 

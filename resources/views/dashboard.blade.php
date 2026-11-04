@@ -569,12 +569,12 @@
                class="flex items-center gap-3 border-b border-slate-100 py-3 first:pt-1 last:border-0 last:pb-1">
 
                 <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xl">
-                    @if ($alat->gambar ?? false)
-                        <img src="{{ asset('storage/'.$alat->gambar) }}"
-                             alt="{{ $alat->nama }}"
-                             class="h-full w-full object-cover">
+                    @if ($alat->foto)
+                    <img src="{{ asset('storage/'.$alat->foto) }}"
+                    alt="{{ $alat->nama }}"
+                    class="h-full w-full object-cover">
                     @else
-                        <span>▧</span>
+                    <span>▧</span>
                     @endif
                 </div>
 

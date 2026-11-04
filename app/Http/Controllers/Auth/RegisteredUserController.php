@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -22,8 +21,19 @@ class RegisteredUserController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'username' => ['required','numeric','digits_between:1,20','unique:users,username',],
-            'nomor_hp' => ['required','string','max:20','regex:/^[0-9]+$/','unique:users,nomor_hp',],
+            'username' => [
+                'required',
+                'numeric',
+                'digits_between:1,20',
+                'unique:users,username',
+            ],
+            'nomor_hp' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^[0-9]+$/',
+                'unique:users,nomor_hp',
+            ],
             'kelas_jabatan' => ['required', 'string', 'max:50'],
             'role' => ['required', 'in:siswa,guru'],
             'password' => ['required', 'confirmed', Password::min(8)],
@@ -36,8 +46,9 @@ class RegisteredUserController extends Controller
         $user = User::create($data);
 
         event(new Registered($user));
-        Auth::login($user);
 
-        return redirect()->route('dashboard')->with('sukses', 'Akun dibuat. Selamat datang di SIPALA.');
+        return redirect()
+            ->route('login')
+            ->with('status', 'Akun berhasil dibuat! Silakan masuk menggunakan akun kamu.');
     }
 }

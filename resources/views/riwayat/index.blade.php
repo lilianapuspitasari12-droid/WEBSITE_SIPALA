@@ -17,41 +17,65 @@
         </div>
     </header>
 
-    {{-- STATISTIK --}}
-    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-blue-800">Total Peminjaman</p>
-                    <p class="mt-2 text-3xl font-extrabold text-blue-700">{{ $total }}</p>
-                    <p class="mt-1 text-xs text-blue-700">Seluruh catatan Peminjaman</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-2xl shadow-sm">▤</div>
-            </div>
-        </div>
+   
+{{-- STATISTIK --}}
+<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
-        <div class="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-teal-800">Disetujui atau Dipinjam</p>
-                    <p class="mt-2 text-3xl font-extrabold text-teal-700">{{ $disetujui }}</p>
-                    <p class="mt-1 text-xs text-teal-700">Peminjaman yang masih berjalan</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-2xl shadow-sm">↗</div>
+    {{-- TOTAL PEMINJAMAN --}}
+    <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-sky-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-blue-800">Total Peminjaman</p>
+                <p class="mt-2 text-3xl font-extrabold text-blue-700">{{ $total }}</p>
+                <p class="mt-1 text-xs text-blue-700">Seluruh catatan peminjaman</p>
             </div>
-        </div>
 
-        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-emerald-800">Selesai Dikembalikan</p>
-                    <p class="mt-2 text-3xl font-extrabold text-emerald-700">{{ $selesai }}</p>
-                    <p class="mt-1 text-xs text-emerald-700">Peminjaman yang sudah selesai</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-2xl shadow-sm">✓</div>
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-blue-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 5h8M8 9h8M8 13h5m-9 7h14a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v13a2 2 0 002 2z"/>
+                </svg>
             </div>
         </div>
-    </section>
+    </div>
+
+    {{-- DISETUJUI --}}
+    <div class="rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-cyan-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-teal-800">Disetujui atau Dipinjam</p>
+                <p class="mt-2 text-3xl font-extrabold text-teal-700">{{ $disetujui }}</p>
+                <p class="mt-1 text-xs text-teal-700">Peminjaman yang masih berjalan</p>
+            </div>
+
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-teal-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3a9 9 0 109 9"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    {{-- SELESAI --}}
+    <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-green-100 p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <p class="text-sm font-semibold text-emerald-800">Selesai Dikembalikan</p>
+                <p class="mt-2 text-3xl font-extrabold text-emerald-700">{{ $selesai }}</p>
+                <p class="mt-1 text-xs text-emerald-700">Peminjaman yang sudah selesai</p>
+            </div>
+
+            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/80 text-emerald-600 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 22a10 10 0 110-20 10 10 0 010 20z"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+</section>
+
 
 {{-- PENCARIAN --}}
 <section class="rounded-2xl border border-blue-100 bg-white shadow-md shadow-blue-100/40">
