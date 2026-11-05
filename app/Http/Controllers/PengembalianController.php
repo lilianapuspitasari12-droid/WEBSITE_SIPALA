@@ -124,9 +124,7 @@ class PengembalianController extends Controller
         ));
     }
 
-    /**
-     * Siswa atau guru mengajukan pengembalian.
-     */
+    /*** Siswa atau guru mengajukan pengembalian. */
     public function store(
         Request $request,
         Peminjaman $peminjaman
