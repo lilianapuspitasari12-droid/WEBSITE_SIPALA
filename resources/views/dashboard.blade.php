@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 @section('judul', 'Dashboard Siswa')
 
@@ -85,7 +86,7 @@
         {{-- NOTIFIKASI DAN BANTUAN --}}
         <div class="flex w-full items-center justify-end gap-3 sm:w-auto">
 
-            {{-- NOTIFIKASI GABUNGAN --}}
+            {{-- NOTIFIKASI --}}
             <div class="relative" x-data="{ notifikasiBuka: false }">
 
                 <button
@@ -112,45 +113,86 @@
                     @endif
                 </button>
 
-                {{-- DROPDOWN --}}
+                {{-- DROPDOWN NOTIFIKASI --}}
                 <div
                     x-cloak
                     x-show="notifikasiBuka"
                     @click.outside="notifikasiBuka = false"
-                    x-transition
-                    class="absolute right-0 z-50 mt-3 w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl">
+                    @keydown.escape.window="notifikasiBuka = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                    class="fixed left-4 right-4 top-32 z-[100] flex max-h-[75vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-800 shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[370px] sm:max-w-[calc(100vw-2rem)]">
 
-                    <div class="border-b border-slate-100 px-4 py-4">
-                        <div class="flex items-center justify-between">
+                    {{-- HEADER NOTIFIKASI --}}
+                    <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 01-6 0"/>
+                                </svg>
+                            </div>
+
                             <div>
                                 <h3 class="text-sm font-bold text-slate-900">
                                     Notifikasi
                                 </h3>
-                                <p class="mt-1 text-[11px] text-slate-500">
-                                    Informasi peminjaman dan denda kamu
+                                <p class="mt-0.5 text-[11px] text-slate-500">
+                                    Informasi terbaru akun kamu
                                 </p>
                             </div>
+                        </div>
 
+                        <div class="flex items-center gap-2">
                             @if ($jumlahNotifikasi > 0)
-                                <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold text-blue-700">
+                                <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-700">
                                     {{ $jumlahNotifikasi }} baru
                                 </span>
                             @endif
-                        </div>
 
-                        @if ($totalDendaNotifikasi > 0)
-                            <div class="mt-3 rounded-xl border border-red-100 bg-red-50 p-3">
-                                <p class="text-[11px] font-semibold text-red-700">
-                                    Total denda belum lunas
-                                </p>
-                                <p class="mt-1 text-lg font-extrabold text-red-700">
-                                    Rp{{ number_format($totalDendaNotifikasi, 0, ',', '.') }}
-                                </p>
-                            </div>
-                        @endif
+                            <button
+                                type="button"
+                                @click="notifikasiBuka = false"
+                                title="Tutup notifikasi"
+                                class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 6l12 12M18 6L6 18"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="max-h-96 overflow-y-auto">
+                    {{-- RINGKASAN DENDA --}}
+                    @if ($totalDendaNotifikasi > 0)
+                        <div class="px-4 pt-4">
+                            <div class="flex items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 p-3">
+                                <div>
+                                    <p class="text-[11px] font-semibold text-red-700">
+                                        Total denda belum lunas
+                                    </p>
+                                    <p class="mt-1 text-lg font-extrabold text-red-700">
+                                        Rp{{ number_format($totalDendaNotifikasi, 0, ',', '.') }}
+                                    </p>
+                                </div>
+
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4m0 4h.01M10.3 3.9L1.8 18.2A2 2 0 003.5 21h17a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- ISI NOTIFIKASI --}}
+                    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 
                         {{-- NOTIFIKASI DENDA --}}
                         @foreach ($notifikasiDenda as $p)
@@ -163,10 +205,13 @@
                             @endphp
 
                             <a href="{{ route('peminjaman.show', $p) }}"
-                                class="flex gap-3 border-b border-slate-100 bg-red-50/50 px-4 py-4 transition hover:bg-red-50">
+                                class="flex gap-3 border-b border-slate-100 px-5 py-4 transition hover:bg-red-50/70">
 
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-lg font-bold text-red-600">
-                                    !
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4m0 4h.01M10.3 3.9L1.8 18.2A2 2 0 003.5 21h17a2 2 0 001.7-2.8L13.7 3.9a2 2 0 00-3.4 0z"/>
+                                    </svg>
                                 </div>
 
                                 <div class="min-w-0 flex-1">
@@ -179,7 +224,7 @@
                                         {{ $hariTerlambat }} hari.
                                     </p>
 
-                                    <p class="mt-1 text-xs font-extrabold text-red-700">
+                                    <p class="mt-1 text-xs font-bold text-red-700">
                                         Denda: Rp{{ number_format($nilaiDenda, 0, ',', '.') }}
                                     </p>
 
@@ -193,21 +238,24 @@
                         {{-- NOTIFIKASI PEMINJAMAN --}}
                         @foreach ($daftarNotifikasi as $notif)
                             <a href="{{ route('notifikasi.show', $notif->id) }}"
-                                class="flex gap-3 border-b border-slate-100 px-4 py-4 transition hover:bg-blue-50 {{ is_null($notif->read_at) ? 'bg-blue-50/70' : 'bg-white' }}">
+                                class="flex gap-3 border-b border-slate-100 px-5 py-4 transition hover:bg-blue-50 {{ is_null($notif->read_at) ? 'bg-blue-50/50' : 'bg-white' }}">
 
-                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl
                                     {{ ($notif->data['jenis'] ?? '') === 'terlambat'
-                                        ? 'bg-red-100 text-red-600'
+                                        ? 'bg-red-50 text-red-600'
                                         : ((($notif->data['jenis'] ?? '') === 'pengingat')
-                                            ? 'bg-amber-100 text-amber-600'
-                                            : 'bg-blue-100 text-blue-600') }}">
+                                            ? 'bg-amber-50 text-amber-600'
+                                            : 'bg-blue-50 text-blue-600') }}">
 
                                     @if (($notif->data['jenis'] ?? '') === 'terlambat')
                                         <span class="text-lg font-bold">!</span>
                                     @elseif (($notif->data['jenis'] ?? '') === 'pengingat')
                                         <span class="text-lg">◷</span>
                                     @else
-                                        <span class="text-lg">✓</span>
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7"/>
+                                        </svg>
                                     @endif
                                 </div>
 
@@ -239,55 +287,95 @@
                             </a>
                         @endforeach
 
+                        {{-- NOTIFIKASI KOSONG --}}
                         @if ($notifikasiDenda->isEmpty() && $daftarNotifikasi->isEmpty())
                             <div class="px-5 py-10 text-center">
-                                <div class="mb-3 text-3xl">♧</div>
+                                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                                            d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 01-6 0"/>
+                                    </svg>
+                                </div>
                                 <p class="text-sm font-bold text-slate-800">
                                     Belum Ada Notifikasi
                                 </p>
                                 <p class="mt-1 text-xs text-slate-500">
-                                    Informasi peminjaman dan denda akan muncul di sini.
+                                    Informasi terbaru akan muncul di sini.
                                 </p>
                             </div>
                         @endif
                     </div>
 
-                    <div class="border-t border-slate-100 bg-slate-50 px-4 py-3">
+                    {{-- FOOTER --}}
+                    <div class="border-t border-slate-100 bg-slate-50 px-5 py-3">
                         <a href="{{ route('peminjaman.index') }}"
-                            class="block text-center text-xs font-bold text-blue-600 hover:text-blue-800">
-                            Lihat Peminjaman Saya →
+                            class="flex items-center justify-center gap-2 text-xs font-bold text-blue-600 transition hover:text-blue-800">
+                            Lihat Peminjaman Saya
+                            <span>→</span>
                         </a>
                     </div>
                 </div>
             </div>
 
             {{-- BANTUAN --}}
-            <div class="relative">
+            <div class="relative" x-data="{ bantuanBuka: false }">
+
                 <button
                     type="button"
                     title="Bantuan"
-                    onclick="document.getElementById('menuBantuan').classList.toggle('hidden')"
+                    @click="bantuanBuka = !bantuanBuka"
                     class="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white text-lg font-bold text-slate-800 shadow-sm transition hover:bg-blue-50">
                     ?
                 </button>
 
-                <div id="menuBantuan"
-                    class="hidden absolute right-0 top-14 z-50 w-[min(350px,calc(100vw-2rem))] max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-5 text-slate-700 shadow-2xl">
+                {{-- DROPDOWN BANTUAN --}}
+                <div
+                    x-cloak
+                    x-show="bantuanBuka"
+                    @click.outside="bantuanBuka = false"
+                    @keydown.escape.window="bantuanBuka = false"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                    x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                    class="fixed left-4 right-4 top-32 z-[100] flex max-h-[75vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[390px] sm:max-w-[calc(100vw-2rem)]">
 
-                    <div class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800">Pusat Bantuan</h3>
-                            <p class="text-xs text-slate-500">Panduan penggunaan SIPALA</p>
+                    {{-- HEADER BANTUAN --}}
+                    <div class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                        d="M8.2 9a4 4 0 017.6 1.7c0 2.3-3.8 3.1-3.8 5.3m0 3h.01M12 22a10 10 0 110-20 10 10 0 010 20z"/>
+                                </svg>
+                            </div>
+
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900">
+                                    Pusat Bantuan
+                                </h3>
+                                <p class="mt-0.5 text-[11px] text-slate-500">
+                                    Panduan penggunaan SIPALA
+                                </p>
+                            </div>
                         </div>
+
                         <button
                             type="button"
-                            onclick="document.getElementById('menuBantuan').classList.add('hidden')"
-                            class="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-slate-100">
-                            &times;
+                            @click="bantuanBuka = false"
+                            title="Tutup bantuan"
+                            class="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 6l12 12M18 6L6 18"/>
+                            </svg>
                         </button>
                     </div>
 
-                    <div class="space-y-5 text-sm">
+                    {{-- ISI PANDUAN --}}
+                    <div class="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-5 py-4 text-sm">
 
                         <div>
                             <h4 class="mb-2 font-bold text-blue-700">01. Informasi Umum</h4>
@@ -495,12 +583,15 @@
                         </div>
                     </div>
 
-                    <button
-                        type="button"
-                        onclick="document.getElementById('menuBantuan').classList.add('hidden')"
-                        class="mt-5 w-full rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
-                        Mengerti
-                    </button>
+                    {{-- FOOTER BANTUAN --}}
+                    <div class="border-t border-slate-100 bg-slate-50 px-5 py-3">
+                        <button
+                            type="button"
+                            @click="bantuanBuka = false"
+                            class="w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white transition hover:bg-blue-700">
+                            Mengerti
+                        </button>
+                    </div>
                 </div>
             </div>
 

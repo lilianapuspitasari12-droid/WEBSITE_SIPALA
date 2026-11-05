@@ -312,6 +312,38 @@
 
     </form>
 
+    {{-- KELUAR AKUN - KHUSUS MODE HP --}}
+    <div class="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/50 px-4 py-3 lg:hidden">
+
+        <div class="min-w-0">
+            <p class="text-xs font-semibold text-slate-300">
+                Ingin menggunakan akun lain?
+            </p>
+            <p class="mt-1 text-[11px] text-slate-500">
+                Keluar dari akun SIPALA.
+            </p>
+        </div>
+
+        <form action="{{ route('logout') }}" method="POST"
+              onsubmit="return confirm('Apakah kamu yakin ingin keluar dari akun ini?')">
+            @csrf
+
+            <button type="submit"
+                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-400 transition hover:bg-rose-500 hover:text-white">
+
+                <svg class="h-3.5 w-3.5" fill="none"
+                     stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+
+                Keluar
+            </button>
+        </form>
+    </div>
+
     {{-- FORM HAPUS FOTO --}}
     <form
         id="hapusFotoForm"

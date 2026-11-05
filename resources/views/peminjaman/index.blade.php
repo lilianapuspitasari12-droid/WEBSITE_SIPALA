@@ -17,11 +17,13 @@
                 </p>
             </div>
 
-            <a href="{{ route('peminjaman.create') }}"
-               class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-md transition hover:-translate-y-0.5 hover:bg-blue-50">
-                <span class="text-lg">＋</span>
-                Ajukan Peminjaman
-            </a>
+            @if (!auth()->user()->isAdmin())
+    <a href="{{ route('peminjaman.create') }}"
+       class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-700 shadow-md transition hover:-translate-y-0.5 hover:bg-blue-50">
+        <span class="text-lg">＋</span>
+        Ajukan Peminjaman
+    </a>
+@endif
         </div>
     </header>
 
